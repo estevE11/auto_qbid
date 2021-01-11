@@ -1,5 +1,7 @@
 # Auto qBid
 
+# No version estable
+
 ## Instalación
 
 Ejecuta `npm install`

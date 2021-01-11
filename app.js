@@ -85,19 +85,22 @@ const snippets = config.snippets;
         });
         console.log('Max hours: ', hours);
 
-        await innerFrame.waitForSelector("#inp_13348");
-        const snippet = snippets[Math.floor(Math.random() * snippets.length)];
-        for (let i = 0; i < hours; i++) {
-            await innerFrame.evaluate(id => {
-                const sel = document.getElementById(id);
-                sel.value = snippet[i].val;
-            }, `inp_133${snippet[i].id}`);
+        if (hours <= 4) { 
+            await innerFrame.waitForSelector("#inp_13348");
+            const snippet = snippets[Math.floor(Math.random() * snippets.length)];
+            for (let i = 0; i < hours; i++) {
+                await innerFrame.evaluate(snippetSel => {
+                    const sel = document.getElementById(`inp_133${snippetSel.id}`);
+                    sel.value = snippetSel.val;
+                }, snippet[i]);
+            }
+    
+            const buttonSave = await innerFrame.$('span[title=Emmagatzemar]');
+            await buttonSave.click();
+        
+            await innerFrame.waitForTimeout(3000);
         }
 
-        const buttonSave = await innerFrame.$('span[title=Emmagatzemar]');
-        await buttonSave.click();
-    
-        await innerFrame.waitForTimeout(3000);
 
         const buttonNext = await innerFrame.$('img[title=Següent]');
         await buttonNext.click();
