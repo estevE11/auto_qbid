@@ -2,38 +2,15 @@ const puppeteer = require('puppeteer');
 
 const months = require('./months');
 const creds = require('./creds.json');
+const config = require('./bot_config.json');
 
 const url = 'https://www.empresaiformacio.org/sBid';
 
-const startDate = [30, 9, 2020];
-let days = 5;
-const endDate = [1, startDate[1]+1 == 13 ? 1 : startDate[1]+1, 2020];
+const startDate = config.start_date.split("-").map(it => parseInt(it));
+console.log(startDate);
+let days = config.duration;
 
-const snippets = [
-    [
-        'inp_13358',
-        'inp_13359',
-        'inp_13364',
-        'inp_13368',
-        'inp_13371'
-    ],
-    [
-        'inp_13358',
-        'inp_13360',
-        'inp_13365',
-        'inp_13353',
-        'inp_13359',
-        'inp_13371'
-    ],
-    [
-        'inp_13353',
-        'inp_13358',
-        'inp_13360',
-        'inp_13365',
-        'inp_13359',
-        'inp_13371'
-    ]
-];
+const snippets = config.snippets;
 
 (async () => {
     const browser = await puppeteer.launch({
@@ -113,8 +90,8 @@ const snippets = [
         for (let i = 0; i < hours; i++) {
             await innerFrame.evaluate(id => {
                 const sel = document.getElementById(id);
-                sel.value = '1.0';
-            }, `${snippet[i]}`);
+                sel.value = snippet[i].val;
+            }, `inp_133${snippet[i].id}`);
         }
 
         const buttonSave = await innerFrame.$('span[title=Emmagatzemar]');
