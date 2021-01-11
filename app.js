@@ -5,7 +5,9 @@ const creds = require('./creds.json');
 
 const url = 'https://www.empresaiformacio.org/sBid';
 
-const startDate = [17, 09, 2020];
+const startDate = [30, 9, 2020];
+let days = 5;
+const endDate = [1, startDate[1]+1 == 13 ? 1 : startDate[1]+1, 2020];
 
 const snippets = [
     [
@@ -33,10 +35,6 @@ const snippets = [
     ]
 ];
 
-const getText = async (el) => {
-    return text;
-}
-
 (async () => {
     const browser = await puppeteer.launch({
         headless: false,
@@ -45,7 +43,7 @@ const getText = async (el) => {
     });
     const page = await browser.newPage();
 
-    console.log('loading..');
+    console.log('loading...');
     await page.goto(url);
 
     console.log('waiting for iframe with form to be ready.');
@@ -62,47 +60,71 @@ const getText = async (el) => {
     
     // After login
     await frame.waitForSelector('iframe[name="contentmain"]');
-    
+    console.log('logged');
+
     const handleFrame = await frame.$('iframe[name="contentmain"]');
     const innerFrame = await handleFrame.contentFrame();
     console.log("Inner iframe loaded");
 
     await innerFrame.waitForSelector("#popupAgenda_calHeader0");
-    let element = await innerFrame.$("#popupAgenda_calHeader0");
-    let text = await innerFrame.evaluate(element => element.textContent, element);
-    let date = text.split(" ");
     
-    //Get to date
-    let currentM = months[date[0]];
-    while(currentM != startDate[1]) {
-        if(currentM > startDate[1]) {
-            await innerFrame.evaluate(() => {
-                popupAgenda.shiftAgenda(-1);
-            });
-        } else {
-            await innerFrame.evaluate(() => {
-                popupAgenda.shiftAgenda(1);
-            });
-        }
-        
-        await innerFrame.waitForSelector("#popupAgenda_calHeader0");
-        element = await innerFrame.$("#popupAgenda_calHeader0");
-        text = await innerFrame.evaluate(element => element.textContent, element);
-        date = text.split(" ");
-        
-        //Get to date
-        currentM = months[date[0]];
-    }
-    
-    // select day
+   // select day
+    console.log(`Starting on ${startDate[2]}-${startDate[1]}-${startDate[0]}`);
+    await innerFrame.waitForSelector("#popupAgenda_calContent0");
+    await innerFrame.waitForTimeout(1000);
     await innerFrame.evaluate((startDate) => {
-        popupAgenda.moveAgenda(`${startDate[2]}`, `${startDate[1]}`, `${startDate[0]}`, true);
+        popupAgenda.moveAgenda(`${startDate[2]}`, `${startDate[1]}`, `${startDate[0]}`, false);
     }, startDate);
 
+    await innerFrame.waitForTimeout(1000);
+    
     // Click task
+    await innerFrame.waitForSelector("#popupAgenda_calHeader0");
     const taskList = await innerFrame.$$('#tablaTasquesDia');
     taskList[0].click();
-
+    
     //in day
+    while (days > 0) {
+        await innerFrame.waitForTimeout(3000);
 
+        console.log(`New day loaded`);
+
+        await innerFrame.waitForSelector(".panel-heading");
+        const day = await innerFrame.evaluate(() => {
+            const div = document.getElementsByClassName('panel-heading');
+            return div[1].innerText;
+        });
+        console.log('Date: ', day);
+
+        const hours = await innerFrame.evaluate(() => {
+            const labels = document.querySelectorAll('label');
+            for (let i = 0; i < labels.length; i++) {
+                if (labels[i].innerText == 'Hores màximes:') {
+                    const el = labels[i].parentElement.children[2].children[0].innerText;
+                    return parseInt(el.charAt(0));
+                }
+            }
+            return 0;
+        });
+        console.log('Max hours: ', hours);
+
+        await innerFrame.waitForSelector("#inp_13348");
+        const snippet = snippets[Math.floor(Math.random() * snippets.length)];
+        for (let i = 0; i < hours; i++) {
+            await innerFrame.evaluate(id => {
+                const sel = document.getElementById(id);
+                sel.value = '1.0';
+            }, `${snippet[i]}`);
+        }
+
+        const buttonSave = await innerFrame.$('span[title=Emmagatzemar]');
+        await buttonSave.click();
+    
+        await innerFrame.waitForTimeout(3000);
+
+        const buttonNext = await innerFrame.$('img[title=Següent]');
+        await buttonNext.click();
+
+        days--;
+    }
 })();
