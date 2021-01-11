@@ -13,6 +13,8 @@ Crea un archivo `creds.json` con tus credenciales de qBid:
 }
 ```
 
+Ejectuta `npm start` para iniciar el bot.
+
 ## Configuración
 
 La configuración del bot se encuentra el el archivo `bot_config.json`.
