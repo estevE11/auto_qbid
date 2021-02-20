@@ -25,7 +25,7 @@ Campo|Descripcion
 :---|:----
 start_date|Fecha de inicio separada por `-`
 duration|El numero de dias que se van a rellenar
-snippets|Plantillas escojidas aleatoriamente para rellenar los dias
+snippets|Plantillas escogidas aleatoriamente para rellenar los dias
 
 #### Definir los selects de una plantilla
 
