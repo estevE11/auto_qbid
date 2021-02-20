@@ -85,15 +85,19 @@ const snippets = config.snippets;
         });
         console.log('Max hours: ', hours);
 
-        if (hours <= 4) { 
+        if (hours == 4 || hours == 6 || hours == 8) { 
             await innerFrame.waitForSelector("#inp_24446");
-            const snippet = snippets[Math.floor(Math.random() * snippets.length)];
-            for (let i = 0; i < hours; i++) {
+            const snippet = snippets[Math.floor(Math.random() * (snippets.length))];
+            let completedHours = 0;
+            for (let i = 0; completedHours < hours; i++) {
                 await innerFrame.evaluate(snippetSel => {
-                    const sel = document.getElementById(`inp_244${snippetSel.id}`);
+                    const sel = document.getElementById(`inp_244${parseInt(snippetSel.id)+44}`);
                     sel.value = snippetSel.val;
                 }, snippet[i]);
+                completedHours += parseInt(snippet[i].val);
             }
+
+            console.log('Filled hours:' + completedHours);
     
             const buttonSave = await innerFrame.$('span[title=Emmagatzemar]');
             await buttonSave.click();
